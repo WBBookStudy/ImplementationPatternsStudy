@@ -189,26 +189,119 @@ s.e();
 ```
 ![KakaoTalk_Photo_2022-08-22-00-03-08](https://user-images.githubusercontent.com/60125719/185797478-04743934-ae35-455b-8dfb-febb09b93fac.jpeg)
 
+## 수집 파라미터
+여러 메서드 호출을 통한 결과를 모으려면 결과를 통합하는 과정이 필요하다.  
+### 방법1) 메서드의 결과값을 반환. 값이 정수처럼 단순한 경우 적합
+```Java
+int size() {
+    for (Node each: getChildren())
+        result += each.size();
+    return result;
+}
+```
+### 방법2) 파라미터를 전달해서 결과를 수집하자. 복잡한 경우 사용
+```Java
+asList() {
+    List results = new ArrayList();
+    addTo(results);
+    return results;
+}
+addTo(List elements) {
+    elements.add(getValue());
+    for (Node each: getChildren())
+        each.addTo(elements);
+}
+```
 
+## 옵션 파라미터
+어떤 메서드는 파라미터가 전달되지 않는 경우 기본 파라미터를 사용한다.
+```Java
+public ServerSocket()
+public ServerSocket(int port)
+public ServerSocket(int port, int backlog)
+```
+기본 파라미터임 ~
 
+## 가변입자
+어떤 메서드는 특정 타입의 파라미터를 여러 개 취할 수 있다.
+```Java
+Collection<String> keys = new ArrayList<String>();
+keys.add(key1);
+keys.add(key2);
+object.index(keys);
+```
+-> 
+```Java
+// 메서드를 method(Class... classes)와 같이 선언하면 다음과 같이 사용할 수 있다.
+object.index(key1, key2);
+```
+어떤 메서드에 가변인자와 옵션 인자를 모두 사용하는경우, 가변인자는 항상 마지막 파라미터여야 한다. 
 
+## 파라미터 객체
+여러 개의 파라미터가 함께 여러 메서드로 전달된다면 이들을 묶어서 하나의 객체로 만드는 것을 고려할 수 있다.  
+```Java
+setOuterBounds(x, y, width, height);
+setInnerBounds(x + 2, y + 2, width - 4, height - 4);
+```
+->
+```Java
+setOuterBounds(bounds);
+setInnerBounds(bounds.expand(-2));
+```
 
+파라미터 객체를 사용하는 주된 이유는 가독성이지만 실수방지나, 로직에 있어서 중요한 역할을 하는 경우도 있고, 밀접한 연관성을 가진다는 근거로도 사용될 수 있다.  
 
+## 상수
+때로는 변하지 않는 데이터를 프로그램의 여러 부분에서 사용해야 하는 경우가 있다.  
+상수를 사용하는 이유는 실수를 줄이기 위함이며, 뜻을 더 명확히 가져갈 수 있다.  
 
+## 역할 제시형 작명
+변수의 이름은 어떻게 짓는 것이 좋을까? 의도를 담을 수 있는 이름을 선택하자.  
+타이핑이 쉬운쪽 보다는 읽기 쉬운쪽이 좋다. 변수 이름은 데이터가 어떻게 사용되고, 연산에서 어떤 역할을 하는지도 나타내야 한다.  
+변수 타입을 이름에 표기하지 말고 IDE를 쓰자.
 
+## 선언 타입
+자바는 변수의 타입을 선언해야함. 타입선언을 피할 수 없다면, 이를 커뮤니케이션에 이용하는것도 좋다. 이를 위해 타입 이름에는 구현을 반영하기보다는 역할을 반영해야 한다.  
+```Java
+List<Person> members = new ArrayList<Person>()
+// member가 List로 사용된다는 것을 알 수 있다.
+// get()이나 set()과 같은 메서드를 사용할 것을 예측한다.
+```
+이름을 List로 지어버리면 나중에 HashMap으로 변경할때 개고생한다. Collection과 같은 유연한 이름으로 지으면 편할 수 있다.  
 
+## 초기화
+프로그램을 짜기 전에는 몇 가지 사항을 점검해야한다. 가정을 정확하게 하면 중요한 정보에 집중할 수 있다. 초기화는 변수가 사용되기 전에 알고 있는 상태로 만드는것임  
+초기화는 선언과 함께 해야함. 초기화에 드는 비용이 비쌀 경우에만 생성자와 분리하자.  
 
+## 열성적 초기화
+변수가 선언되거나 생성되자마자 초기화 한다. 
+```Java
+class Library {
+    List<Person> members = new ArrayList<Person>();
+}
+```
+선언문에서 필드를 초기화 할 수 없다면 생성자에서 하자
+```Java
+class Point {
+    int x, y;
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+```
 
-
-
-
-
-
-
-
-
-
-
+## 게으른 초기화
+초기화 비용이 크다면 메서드를 만들고 처음으로 메서드를 호출할 떄 객체를 초기화 시키자
+```Java
+Library.Collection<Person> getMembers() {
+    if (members == null)
+        members = new ArrayList<Person>();
+    return members
+}
+```
+단, 게으른 초기화를 사용하면 열성적 초기화를 사용할 때보다 코드를 읽기 어려워진다.  
+즉, 게으른 초기화를 사용하는 것은 "이 부분에서는 성능이 중요하다"라고 이야기 하는것이다.
 
 
 
