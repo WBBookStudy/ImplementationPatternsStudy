@@ -341,6 +341,110 @@ else
 ```
 > 이런 코드가 나올 경우 setValid(newState)를 쓰자.
 
+## 질의 메소드
+때로 객체는 다른 객체의 상태에 따라 결정을 내려야한다. 보통 다른 객체는 자체적으로 결정을 내리게 되므로 이는 이상적인 상황은 아니다. 하지만 객체가 프로토콜을 통해 다른 객체의 결정을 도와야 할 경우에는 "be"동사(is나 was등..)나 "have"를 사용하라  
+
+어떤 객체가 다른 객체의 상태에 의존적인 로직을 많이 갖는다면 이는 로직의 위치에 문제가 있다는 신호이다.
+```Java
+if (widget.isVisible())
+	widget.doSomething();
+else 
+	widget.doSomethingElse();
+```
+> 이런 코드는 widget객체에 적당한 메소드를 넣어주는 편이 낫다. 
+
+## 동등성 메소드
+객체의 동일성이 아닌 동등성(equality)을 비교해야 하는 경우, equlas()와 hashCode()를 구현하라. 동등한 객체는 같은 해쉬 값을 가져야 하므로, hashCode()의 구현에는 equals()구현에 쓰인 데이터만을 사용해야한다.  
+```Java
+// Instrument
+public boolean equals(Object other) {
+	if (! other instansceOf Instrument)
+		return false;
+	Instrument instrument = (Instrument) other;
+	return getSerialNumber().equals
+	// (Instrument.getSerialNumber());
+}
+
+public int hashCode() {
+	return getSerialNumber.hashCode();
+}
+
+// 공장 메소드에서 Instrument 객체를 할당받는 방식
+static Instrument create(String serialNumber) {
+	if (cache.containsKey(serialNumber))
+		return cache.get(serialNumber);
+	Instrument result = new Instrument(serialNumber);
+	cache.put(serialNumber, result);
+	return result;
+}
+
+```
+
+## 취득 메소드
+객체 상태에 대한 접근을 허용하기 위한 한 가지 방법은 상태를 반환하는 메소드를 제공하는 것이다.
+```Java
+int getX() {
+	return x;
+}
+```
+로직과 데이터를 함께 배치한다는 원칙에 입각하면 무작정 취득 메소드를 제공하는 것보다 가급적 필요한 로직을 데이터가 있는 쪽으로 옮겨보라.  
+하지만 대게 추상화 기법들이 그렇듯이 내부 취득 메소드 사용은 필요할 떄까지 미루는 편이 낫다.
+
+## 설정 메소드
+필드 값을 설정하는 메소드가 필요하다면, 다음과 같이 "set"이라는 접두어를 붙인다.
+```Java
+void setX(int newX) {
+	x = newX;
+}
+```
+설정 메소드의 가시성을 높이는 문제는 취득 메소드 가시성제공보다 더 주의해야한다.  
+설정 메소드의 이름은 의도가 아닌 구현에 의해 정해지며, 메소드의 이름은 클라이언트 입장에서 지어야 한다.  
+값을 설정해서 클라이언트가 어떤 문제를 해결할 수 있는지 이해하고, 그 문제를 직접 해결할 수 있는 메소드를 제공하라.  
+```Java
+paragraph.setJustification(Paragraph.CENTERED); 
+```
+> 이런 인터페이스를 추가하면 내부 구현을 노출시켜버린다. 
+```Java
+paragraph.centered();
+```
+> 마찬가지  
+  
+내부적으로(private or protected) 설정 메소드를 사용하는 것은 의존적인 정보를 업데이트하는 경우 등에 유용하다.
+```Java
+// 워드프로세서에서 문단 정렬 방식을 바꿀 때마다 그 문단을 새로 보여줘야 한다고 하자. 
+private void setJustification(...) {
+	...
+	redisplay();
+}
+```
+> 어떤 데이터가 변경될 경우, 어떤 의존적인 데이터가 변경되어야 하는지 명확하게 보여줄 수 있다.  
+  
+설정 메소드를 사용하면 코드에 문제가 발생하기 쉽다. 한 가지 원칙은 가급적 외부에서 설정 메소드 사용을 피하는 것이다.  
+
+## 안전한 복사
+취득 메소드나 설정 메소드를 사용하면 엘리어스 문제(2개의 객체가 다른 객체에 대해 배타적인 접근권이 있다고 가정하는 것)가 발생할 수 있다.  
+앨리어스 문제는 더 심각한 설계상의 문제가 있다는 신호이지만, 어떤 경우에는 객체를 반환하거나 저장하기 전에 복사본을 만드는 식으로 피할 수 있다.  
+```Java
+List<Book> getBooks() {
+	List<Book> result = new ArrayList<Book>();
+	result.addAll(books);
+	return result; 
+}
+```
+> 그냥 컬렉션 접근자 메소드를 제공하는 편이 나을지도 모른다. 그러나 전체 데이터에 데한 접근을 제공하기 위해서라면 이 기법을 사용하는 편이 좀 더 안전하다.  
+  
+설정 메소드도 안전한 복사를 통해 구현할 수 있다. 
+```Java
+void setBooks(List<Book> newBooks) {
+	books = new ArrayList<Book>();
+	books.addAll(newBooks);
+}
+```
+  
+
+안전한 복사는 통제할 수 없는 외부 접근에서 코드를 보호하는 일시적인 해결책일 뿐이다. 따라서 가급적 어떤 구현의 핵심 기법으로 사용하는 것은 피하는 편이 낫다.  
+변경이 불가능한 객체(immutable object)와 적합한 조합 메소드(composed method)를 통해 더욱 간결하고 커뮤니케이션에 도움이 되면서도 문제를 적게 발생시키는 인터페이스를 만들 수 있다.
+
 
 
 
