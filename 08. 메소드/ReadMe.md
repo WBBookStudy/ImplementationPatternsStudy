@@ -192,7 +192,7 @@ class Polar {
 ## 변환 생성자
 변환 생성자는 원본 객체를 파라미터로 취해서 대상 객체를 반환한다.  
 ```Swift 
-class Caresian {
+class Cartesian {
 	init(polar: Polar) {
 		...
 	}
